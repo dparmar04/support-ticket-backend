@@ -1,5 +1,5 @@
-const express = require('express');
 require('dotenv').config();
+const express = require('express');
 const dbConnect = require('./config/dbConnect.js')
 const auth = require('./routes/auth.routes.js')
 const userRoutes = require('./routes/user.routes.js')
@@ -10,7 +10,6 @@ const cors = require('cors');
 
 
 const app = express();
-
 
 // Middleware
 const corsOptions = {
@@ -36,7 +35,6 @@ const corsOptions = {
 dbConnect();
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // 👈 THIS LINE IS VERY IMPORTANT
 
 
 
