@@ -11,19 +11,33 @@ const cors = require('cors');
 
 const app = express();
 
-dbConnect();
 
 // Middleware
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:5173",
+      "https://smart-support-ticket.vercel.app",
+    ];
 
-app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    process.env.FRONTEND_URL
-  ],
-  methods: ['GET', 'POST', 'PATCH', 'DELETE', 'PUT'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+    // allow requests with no origin (Postman, server-to-server)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
-}));
+};
+
+
+dbConnect();
+
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // 👈 THIS LINE IS VERY IMPORTANT
+
 
 
 app.use(express.json());
