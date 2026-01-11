@@ -182,15 +182,23 @@ const updateTicketStatus = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status update' });
     }
 
-    const ticket = await Ticket.findOneAndUpdate(
-      { _id: req.params.id, assignedTo: req.user.id },
-      { status },
-      { new: true }
-    );
+    const ticket = await Ticket.findOne({
+      _id: req.params.id,
+      assignedTo: req.user.id,
+    });
 
     if (!ticket) {
       return res.status(403).json({ message: 'Not authorized' });
     }
+
+    if (ticket.status === 'open' && status !== 'in-progress') {
+      return res.status(400).json({
+        message: 'Ticket must be in-progress before resolving or holding',
+      });
+    }
+
+    ticket.status = status;
+    await ticket.save();
 
     if (status === 'resolved' || status === 'rejected') {
       await User.findByIdAndUpdate(req.user.id, {
