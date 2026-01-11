@@ -43,15 +43,29 @@ const assignEngineer = async (ticketSkills) => {
   // filter only real skill matches
   const skilled = scored.filter(e => e.score > 0);
 
-  const candidates = skilled.length ? skilled : scored;
-  const assignmentType = skilled.length ? "skill-match" : "load-balance";
+  // STRICT RULE: only engineers with required skills are eligible
+  if (!skilled.length) {
+    if (DEBUG) {
+      console.log("\n❌ [Assignment Blocked]");
+      console.log("No engineer has required skills:", ticketSkills);
+    }
 
-  candidates.sort((a, b) => {
+    return {
+      engineer: null,
+      assignmentType: "unassigned",
+      confidence: 0,
+      reason: "No engineer with required skills available",
+    };
+  }
+
+  // Load-balance ONLY among skilled engineers
+  skilled.sort((a, b) => {
     if (b.score !== a.score) return b.score - a.score;
     return a.activeTickets - b.activeTickets;
   });
 
-  const selected = candidates[0];
+  const selected = skilled[0];
+  const assignmentType = "skill-based-load-balanced";
 
   if (DEBUG) {
     console.log("\n🏆 [Assignment Result]");
@@ -69,9 +83,7 @@ const assignEngineer = async (ticketSkills) => {
     engineer: selected.engineer,
     assignmentType,
     confidence: Math.min(100, selected.score * 15),
-    reason: skilled.length
-      ? `Matched skills: ${ticketSkills.join(", ")}`
-      : "No skill match found, assigned by workload",
+    reason: `Assigned based on skill match (${ticketSkills.join(", ")}) and workload`,
   };
 
 };
